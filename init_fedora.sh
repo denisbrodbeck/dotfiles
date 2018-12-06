@@ -52,10 +52,8 @@ echo '{
 
 # init fish shell
 sudo usermod -s /usr/bin/fish denis
-curl -L https://get.oh-my.fish | fish
-omf install bobthefish
-#wget -q https://get.oh-my.fish -O /tmp/setup_fish.fish
-#fish /tmp/setup_fish.fish --noninteractive --yes
+wget -q https://get.oh-my.fish -O /tmp/setup_fish.fish
+fish /tmp/setup_fish.fish --noninteractive --yes
 echo '# setup go
 set -xg PATH $PATH /usr/local/go/bin
 set -xg GOPATH $HOME/code/go
@@ -67,7 +65,9 @@ echo '
 Setup completed...
 
 Last steps:
-  * install fonts at ~/Downloads
+  * install fonts from ~/Downloads
+  * enable h264 plugin in firefox
+  * configure firefox
   * start `Tweaks`
     * `Appearance-->Applications` == Adwaita-dark
     * `Extensions-->Alternatetab` == ON
@@ -77,5 +77,8 @@ Last steps:
   * configure Terminal
     * `Initial terminal size` 140 columns, 30 rows
     * `Terminal bell` OFF
+  * install fish theme
+    * `fish`
+    * `omf install bobthefish`
   * Reboot
 '
