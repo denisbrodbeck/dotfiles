@@ -18,7 +18,8 @@ git config --global core.autocrlf input
 
 # install go
 mkdir -p ~/code/go/bin
-wget -q https://dl.google.com/go/go1.11.2.linux-amd64.tar.gz -O /tmp/setup_go.tgz
+wget -q https://dl.google.com/go/go1.12.linux-amd64.tar.gz -O /tmp/setup_go.tgz
+sudo rm -rf /usr/local/go
 sudo tar -C /usr/local -xzf /tmp/setup_go.tgz
 wget -q https://github.com/golang/dep/releases/download/v0.5.0/dep-linux-amd64 -O ~/code/go/bin/dep
 chmod 0755 ~/code/go/bin/dep
