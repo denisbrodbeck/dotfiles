@@ -1,0 +1,12 @@
+[user]
+	email = go.github@darker.red
+	name = Denis Brodbeck
+[core]
+	autocrlf = input
+[push]
+	default = nothing # be explicit!
+[color]
+	ui = auto
+[alias]
+	lol = log --graph --decorate --pretty=oneline --abbrev-commit
+	lola = log --graph --decorate --pretty=oneline --abbrev-commit --all
