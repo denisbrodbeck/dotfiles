@@ -4,16 +4,20 @@ set -eu
 echo 'Configuring Fedora 31 for DEV'
 
 sudo dnf -q -y update
-sudo dnf -q -y install fish nano gnome-tweak-tool open-vm-tools-desktop wireshark \
-                        git nodejs ansible ShellCheck \
+sudo dnf -q -y install fish nano gnome-tweaks open-vm-tools-desktop wireshark \
+                        git make gcc nodejs ansible ShellCheck \
                         php-cli php-common php-gd php-pdo php-pgsql php-intl php-json php-xml php-sodium php-mbstring
-# sudo dnf -q -y install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-29.noarch.rpm https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-29.noarch.rpm
-# sudo dnf -q -y config-manager --set-enabled fedora-cisco-openh264
-# sudo dnf -q -y install gstreamer1-plugin-openh264 mozilla-openh264
+sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+sudo dnf -q -y config-manager --set-enabled fedora-cisco-openh264
+sudo dnf -q -y install gstreamer1-plugin-openh264 mozilla-openh264 openh264 ffmpeg
+
+mkdir -p ~/.local/bin
 
 # download nice fonts
 wget -q https://github.com/tonsky/FiraCode/raw/master/distr/otf/FiraCode-Regular.otf -O ~/Downloads/fonts_firacode_regular.otf
 wget -q https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/FiraMono/Regular/complete/Fura%20Mono%20Regular%20Nerd%20Font%20Complete%20Mono.otf -O ~/Downloads/fonts_furacode_regular_mono.otf
+sudo dnf copr enable dawid/better_fonts
+sudo dnf install fontconfig-enhanced-defaults fontconfig-font-replacements
 
 # setup git
 git config --global user.email "go.github@darker.red"
@@ -27,6 +31,7 @@ echo '# see https://infosec.mozilla.org/guidelines/openssh.html#modern
 HashKnownHosts yes
 # Host keys the client accepts - order here is honored by OpenSSH
 HostKeyAlgorithms ssh-ed25519-cert-v01@openssh.com,ssh-rsa-cert-v01@openssh.com,ssh-ed25519,ssh-rsa,ecdsa-sha2-nistp521-cert-v01@openssh.com,ecdsa-sha2-nistp384-cert-v01@openssh.com,ecdsa-sha2-nistp256-cert-v01@openssh.com,ecdsa-sha2-nistp521,ecdsa-sha2-nistp384,ecdsa-sha2-nistp256
+
 KexAlgorithms curve25519-sha256@libssh.org,ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group-exchange-sha256
 MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com
 Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
@@ -36,19 +41,23 @@ Host *
 Host github.com
   IdentityFile ~/.ssh/id_github
 ' > ~/.ssh/config
+chmod 0644 ~/.ssh/config
 
 # install composer
 cd /tmp/
 php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-php -r "if (hash_file('sha384', 'composer-setup.php') === 'a5c698ffe4b8e849a443b120cd5ba38043260d5c4023dbf93e1558871f1f07f58274fc6f4c93bcfd858c6bd0775cd8d1') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
-sudo php composer-setup.php --filename=composer --install-dir=/usr/local/bin
+php -r "if (hash_file('sha384', 'composer-setup.php') === 'e0012edf3e80b6978849f5eff0d4b4e4c79ff1609dd1e613307e16318854d24ae64f26d17af3ef0bf7cfb710ca74755a') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+php composer-setup.php --install-dir=/home/denis/.local/bin --filename=composer
 php -r "unlink('composer-setup.php');"
 
 # install go
-mkdir -p ~/code/go/bin
-wget -q https://dl.google.com/go/go1.13.3.linux-amd64.tar.gz -O /tmp/setup_go.tgz
+mkdir -p ~/.go/bin
+wget -q https://dl.google.com/go/go1.14.linux-amd64.tar.gz -O /tmp/setup_go.tgz
 sudo rm -rf /usr/local/go
 sudo tar -C /usr/local -xzf /tmp/setup_go.tgz
+
+# install rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # install vs code
 wget -q https://update.code.visualstudio.com/latest/linux-rpm-x64/stable -O /tmp/setup_code.rpm
@@ -61,6 +70,7 @@ code --install-extension eamodio.gitlens
 code --install-extension editorconfig.editorconfig
 code --install-extension esbenp.prettier-vscode
 code --install-extension davidanson.vscode-markdownlint
+code --install-extension rust-lang.rust
 echo '{
     "editor.fontSize": 16,
     "editor.fontFamily": "FuraMono Nerd Font Mono",
@@ -95,19 +105,25 @@ echo '{
     "prettier.trailingComma": "es5",
     "go.useLanguageServer": true,
     "[go]": {
-        "editor.snippetSuggestions": "none",
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
             "source.organizeImports": true,
         },
-        "editor.codeActionsOnSaveTimeout": 1500
+        // Optional: Disable snippets, as they conflict with completion ranking.
+        "editor.snippetSuggestions": "none",
+    },
+    "[go.mod]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": true,
+        },
     },
     "gopls": {
-        "usePlaceholders": true, // add parameter placeholders when completing a function
-        // ----- Experimental settings -----
-        "completeUnimported": true, // autocomplete unimported packages
-        "watchChangedFiles": true, // watch file changes outside of the editor
-        "deepComplete": true, // deep completion
+        // Add parameter placeholders when completing a function.
+        "usePlaceholders": true,
+        // If true, enable additional analyses with staticcheck.
+        // Warning: This will significantly increase memory usage.
+        "staticcheck": true,
     },
     "[javascript]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -129,13 +145,28 @@ echo '{
 sudo usermod -s /usr/bin/fish denis
 wget -q https://get.oh-my.fish -O /tmp/setup_fish.fish
 fish /tmp/setup_fish.fish --noninteractive --yes
-echo '#setup npm
-set -xg NPM_CONFIG_PREFIX $HOME/.npm-global
-set -xg PATH $HOME/.npm-global/bin $PATH
+echo '# setup local bin
+if test -d $HOME/.local/bin; and not contains $HOME/.local/bin $PATH
+	set -p PATH $HOME/.local/bin
+end
+if test -d $HOME/bin; and not contains $HOME/bin $PATH
+	set -p PATH $HOME/bin
+end
+#setup npm
+if test -d $HOME/.npm; and not contains $HOME/.npm/bin $PATH
+	set -xg NPM_CONFIG_PREFIX $HOME/.npm
+	set -p PATH $HOME/.npm/bin
+end
 # setup go
-set -xg PATH $PATH /usr/local/go/bin
-set -xg GOPATH $HOME/code/go
-set -xg PATH (go env GOPATH)/bin $PATH
+if test -d /usr/local/go/bin; and not contains /usr/local/go/bin $PATH
+	set -a PATH /usr/local/go/bin
+	set -gx GOPATH $HOME/.go
+	set -p PATH (go env GOPATH)/bin
+end
+# setup rust
+if test -d $HOME/.cargo; and not contains $HOME/.cargo/bin $PATH
+	set -p PATH $HOME/.cargo/bin
+end
 # misc stuff
 set -xg DEFAULT_USER denis' > ~/.config/omf/init.fish
 
@@ -149,9 +180,9 @@ Last steps:
   * install fonts from ~/Downloads
   * enable h264 plugin in firefox
   * configure firefox
+  * start `Settings` --> `Devices` --> `Keyboard Shortcuts`: `Switch Windows= Alt+Tab`
   * start `Tweaks`
     * `Appearance-->Applications` == Adwaita-dark
-    * `Extensions-->Alternatetab` == ON
     * `Fonts-->Monospace Text` == FuraMono Nerd Font Mono Regular, Size 14
     * `Top Bar` Weekday ON, Date ON, Week Numbers ON
     * `Windows Titlebars` Maximize ON, Minimize ON, Placement RIGHT
