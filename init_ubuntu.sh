@@ -85,23 +85,7 @@ sudo fc-cache -vr
 
 # setup git
 say 'setup git'
-git config --global user.email "go.github@darker.red"
-git config --global user.name "Denis Brodbeck"
-git config --global core.autocrlf input
-echo '[user]
-	email = go.github@darker.red
-	name = Denis Brodbeck
-[core]
-	autocrlf = input
-[push]
-	default = nothing # be explicit!
-[color]
-	ui = auto
-[alias]
-	st = status
-	lol = log --graph --decorate --pretty=oneline --abbrev-commit
-	lola = log --graph --decorate --pretty=oneline --abbrev-commit --all
-' > ~/.gitconfig
+cp ./.gitconfig ~/.gitconfig
 
 # pre-init ssh
 say 'secure ssh'

@@ -12,3 +12,5 @@
 	lol = log --graph --decorate --pretty=oneline --abbrev-commit
 	lola = log --graph --decorate --pretty=oneline --abbrev-commit --all
 	pu = push -u origin # git puma master --> git push -u origin master
+[init]
+	defaultBranch = main
